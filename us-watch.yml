@@ -1,0 +1,52 @@
+# Runs the US feeds (SEC Form 4, 13D/G, 13F, House trades) in the cloud 24/7.
+# Each run polls continuously for ~57 minutes, then the next hourly run takes over,
+# so alerts arrive within ~2-3 minutes of a filing appearing on EDGAR.
+# Free and unlimited on a PUBLIC repo. Put your config in the CONFIG_YAML secret
+# so your watchlist and tokens are not visible.
+
+name: us-watch
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: us-watch
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 62
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Restore seen-filings state
+        uses: actions/cache/restore@v4
+        with:
+          path: state.json
+          key: state-${{ github.run_id }}
+          restore-keys: state-
+
+      - name: Watch US feeds
+        env:
+          CONFIG_YAML: ${{ secrets.CONFIG_YAML }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SEC_USER_AGENT: ${{ secrets.SEC_USER_AGENT }}
+        run: python watcher.py --feeds us --duration 3420
+
+      - name: Save seen-filings state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: state.json
+          key: state-${{ github.run_id }}

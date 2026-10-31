@@ -1,0 +1,72 @@
+# ------------------------------------------------------------------
+# Big Shot Watch - configuration
+# Copy this file to config.yaml and edit. Anything marked (env) can
+# also be set as an environment variable / GitHub secret instead.
+# ------------------------------------------------------------------
+
+telegram:
+  bot_token: ""        # (env) TELEGRAM_BOT_TOKEN  - from @BotFather
+  chat_id: ""          # (env) TELEGRAM_CHAT_ID    - see README step 1
+
+sec:
+  # SEC requires a real name + email in the User-Agent or it blocks you.
+  user_agent: ""       # (env) SEC_USER_AGENT  e.g. "Venkatesh you@example.com"
+
+# ---------------- What triggers an alert ----------------
+# An item is sent if it matches ANY of: watchlist, investors, or large-trade threshold.
+
+watchlist:
+  india: [RELIANCE, TCS, HDFCBANK, INFY]     # NSE symbols
+  us: [NVDA, AAPL, MSFT, TSLA]               # US tickers
+
+# People / funds to follow in ANY stock (case-insensitive, partial match is fine)
+investors:
+  india:
+    - Rakesh Jhunjhunwala      # estate / Rare Enterprises
+    - Rekha Jhunjhunwala
+    - Radhakishan Damani
+    - Vijay Kedia
+    - Ashish Kacholia
+    - Dolly Khanna
+    - Mukul Agrawal
+    - Sunil Singhania
+    - Abakkus
+    - Nalanda
+    - Government of Singapore
+    - Goldman Sachs
+    - Morgan Stanley
+  us:
+    - Berkshire Hathaway
+    - Pershing Square
+    - Scion Asset
+    - Icahn
+    - Elliott
+    - Bridgewater
+    - Duquesne
+    - Appaloosa
+    - Third Point
+    - Starboard
+    - Trian
+
+# Large trades in ANY stock
+thresholds:
+  india_inr: 100000000      # Rs 10 crore
+  us_usd: 1000000           # $1 million
+  us_initial_13d_anywhere: true   # every brand-new activist (>5%) stake, any company
+
+# ---------------- Feeds ----------------
+feeds:
+  nse_insider: {enabled: true, every_min: 3}     # SEBI PIT: promoters/directors/KMP
+  nse_deals:   {enabled: true, every_min: 5}     # bulk + block deals
+  nse_sast:    {enabled: true, every_min: 10}    # substantial acquisitions (SAST)
+  sec_form4:   {enabled: true, every_min: 2, codes: [P, S]}  # P=open-market buy, S=sale
+  sec_13dg:    {enabled: true, every_min: 3}
+  sec_13f:     {enabled: true, every_min: 15}
+  house_ptr:   {enabled: true, every_min: 30, alert_all: true}  # Congress trades
+
+# Skip routine insider items (pledges, ESOP allotments, gifts). Keep true for clean signal.
+india_buy_sell_only: true
+
+# On the very first run, mark everything already published as "seen" so
+# you don't get flooded with old filings.
+seed_on_first_run: true
